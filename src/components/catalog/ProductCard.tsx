@@ -14,8 +14,8 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated }: ProductCardProps) => {
   return (
-    <Card className="overflow-hidden group hover:shadow-lg transition-shadow">
-      <div className="aspect-square bg-muted relative overflow-hidden">
+    <Card className="overflow-hidden group hover:shadow-md transition-shadow">
+      <div className="aspect-[4/3] bg-muted relative overflow-hidden">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
@@ -28,7 +28,7 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
           />
         ) : null}
         <div className={`absolute inset-0 flex items-center justify-center ${product.imageUrl ? 'hidden' : ''}`}>
-          <Package className="h-12 w-12 text-muted-foreground/50" />
+          <Package className="h-8 w-8 text-muted-foreground/50" />
         </div>
         {onDelete && (
           <Button
@@ -41,22 +41,22 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
           </Button>
         )}
       </div>
-      <CardContent className="p-4 space-y-2">
-        <h3 className="font-semibold text-foreground line-clamp-1">{product.name}</h3>
-        <div className="flex gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-xs">{brandName}</Badge>
-          <Badge variant="outline" className="text-xs">{categoryName}</Badge>
+      <CardContent className="p-2 sm:p-3 space-y-1.5">
+        <h3 className="font-semibold text-foreground line-clamp-1 text-sm">{product.name}</h3>
+        <div className="flex gap-1 flex-wrap">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{brandName}</Badge>
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0">{categoryName}</Badge>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-primary">₹{product.price.toFixed(2)}</span>
+          <span className="text-sm sm:text-base font-bold text-primary">₹{product.price.toFixed(2)}</span>
           {isAuthenticated && (
-            <span className={`text-sm ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+            <span className={`text-[10px] sm:text-xs ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {product.stock > 0 ? `${product.stock}` : 'Out'}
             </span>
           )}
         </div>
         {product.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-1 hidden sm:block">{product.description}</p>
         )}
       </CardContent>
     </Card>
