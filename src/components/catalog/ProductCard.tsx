@@ -9,9 +9,10 @@ interface ProductCardProps {
   brandName: string;
   categoryName: string;
   onDelete?: (id: string) => void;
+  isAuthenticated?: boolean;
 }
 
-export const ProductCard = ({ product, brandName, categoryName, onDelete }: ProductCardProps) => {
+export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated }: ProductCardProps) => {
   return (
     <Card className="overflow-hidden group hover:shadow-lg transition-shadow">
       <div className="aspect-square bg-muted relative overflow-hidden">
@@ -48,9 +49,11 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete }: Prod
         </div>
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-primary">₹{product.price.toFixed(2)}</span>
-          <span className={`text-sm ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
-            {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-          </span>
+          {isAuthenticated && (
+            <span className={`text-sm ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+            </span>
+          )}
         </div>
         {product.description && (
           <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
