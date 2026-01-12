@@ -114,7 +114,14 @@ export const useOrders = () => {
     }
   };
 
-  const updateOrderStatus = async (id: string, status: Order['status']) => {
+  const updateOrderStatus = async (
+    id: string, 
+    status: Order['status'],
+    onDelivered?: (items: OrderItem[]) => void
+  ) => {
+    const order = orders.find(o => o.id === id);
+    if (!order) return;
+
     const { error } = await supabase
       .from('orders')
       .update({ status })
@@ -123,6 +130,11 @@ export const useOrders = () => {
     if (error) {
       console.error('Error updating order status:', error);
       return;
+    }
+
+    // If marking as delivered, trigger the callback to deduct stock
+    if (status === 'delivered' && order.status !== 'delivered' && onDelivered) {
+      onDelivered(order.items);
     }
 
     setOrders(prev =>
