@@ -153,6 +153,7 @@ const Index = () => {
                     brandName={getBrandById(product.brandId)?.name || 'Unknown'}
                     categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
                     onDelete={isAuthenticated ? deleteProduct : undefined}
+                    isAuthenticated={isAuthenticated}
                   />
                 ))}
               </div>
