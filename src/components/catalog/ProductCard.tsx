@@ -8,7 +8,7 @@ interface ProductCardProps {
   product: Product;
   brandName: string;
   categoryName: string;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export const ProductCard = ({ product, brandName, categoryName, onDelete }: ProductCardProps) => {
@@ -29,14 +29,16 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete }: Prod
         <div className={`absolute inset-0 flex items-center justify-center ${product.imageUrl ? 'hidden' : ''}`}>
           <Package className="h-12 w-12 text-muted-foreground/50" />
         </div>
-        <Button
-          variant="destructive"
-          size="icon"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-          onClick={() => onDelete(product.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {onDelete && (
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+            onClick={() => onDelete(product.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       <CardContent className="p-4 space-y-2">
         <h3 className="font-semibold text-foreground line-clamp-1">{product.name}</h3>

@@ -1,9 +1,32 @@
-import { Package, Moon, Sun } from 'lucide-react';
+import { Package, Moon, Sun, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 export const CatalogHeader = () => {
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, signOut, user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: 'Error signing out',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Signed out',
+        description: 'You have been successfully signed out.',
+      });
+      navigate('/');
+    }
+  };
 
   return (
     <header className="border-b bg-card">
@@ -18,13 +41,27 @@ export const CatalogHeader = () => {
               <p className="text-sm text-muted-foreground">Manage your product inventory</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {theme === 'light' ? (
-              <Moon className="h-5 w-5" />
-            ) : (
-              <Sun className="h-5 w-5" />
+          
+          <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <>
+                <span className="text-sm text-muted-foreground hidden sm:inline">
+                  {user?.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </>
             )}
-          </Button>
+            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              {theme === 'light' ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </header>
