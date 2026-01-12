@@ -1,4 +1,4 @@
-import { Package, Moon, Sun, LogOut } from 'lucide-react';
+import { Package, Moon, Sun, LogOut, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,7 +35,7 @@ export const CatalogHeader = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <>
                 <span className="text-sm text-muted-foreground hidden sm:inline">
                   {user?.name}
@@ -45,6 +45,11 @@ export const CatalogHeader = () => {
                   Sign Out
                 </Button>
               </>
+            ) : (
+              <Button variant="default" size="sm" onClick={() => navigate('/login')}>
+                <LogIn className="h-4 w-4 mr-2" />
+                Login
+              </Button>
             )}
             <Button variant="ghost" size="icon" onClick={toggleTheme}>
               {theme === 'light' ? (
