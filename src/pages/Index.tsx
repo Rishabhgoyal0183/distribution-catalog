@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useCatalog } from '@/hooks/useCatalog';
+import { useOrders } from '@/hooks/useOrders';
 import { CatalogHeader } from '@/components/catalog/CatalogHeader';
 import { ManageSection } from '@/components/catalog/ManageSection';
 import { FilterBar } from '@/components/catalog/FilterBar';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { AddProductDialog } from '@/components/catalog/AddProductDialog';
+import { TakeOrderDialog } from '@/components/catalog/TakeOrderDialog';
+import { OrdersSection } from '@/components/catalog/OrdersSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Settings } from 'lucide-react';
+import { Package, Settings, ClipboardList } from 'lucide-react';
 
 const Index = () => {
   const {
@@ -24,6 +27,17 @@ const Index = () => {
     getCategoryById,
   } = useCatalog();
 
+  const {
+    orders,
+    isLoaded: ordersLoaded,
+    addOrder,
+    updateOrderStatus,
+    deleteOrder,
+    exportToJSON,
+    exportToCSV,
+    importFromJSON,
+  } = useOrders();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -38,7 +52,7 @@ const Index = () => {
     });
   }, [products, searchQuery, selectedBrand, selectedCategory]);
 
-  if (!isLoaded) {
+  if (!isLoaded || !ordersLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading catalog...</div>
@@ -52,10 +66,14 @@ const Index = () => {
       
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="catalog" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="catalog" className="gap-2">
               <Package className="h-4 w-4" />
               Catalog
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Orders
             </TabsTrigger>
             <TabsTrigger value="manage" className="gap-2">
               <Settings className="h-4 w-4" />
@@ -117,6 +135,29 @@ const Index = () => {
             <div className="text-center text-sm text-muted-foreground">
               Showing {filteredProducts.length} of {products.length} products
             </div>
+          </TabsContent>
+
+          <TabsContent value="orders" className="space-y-6">
+            <div className="flex justify-end">
+              {products.length > 0 && (
+                <TakeOrderDialog
+                  products={products}
+                  brands={brands}
+                  categories={categories}
+                  getBrandById={getBrandById}
+                  getCategoryById={getCategoryById}
+                  onAdd={addOrder}
+                />
+              )}
+            </div>
+            <OrdersSection
+              orders={orders}
+              onUpdateStatus={updateOrderStatus}
+              onDelete={deleteOrder}
+              onExportJSON={exportToJSON}
+              onExportCSV={exportToCSV}
+              onImportJSON={importFromJSON}
+            />
           </TabsContent>
 
           <TabsContent value="manage">

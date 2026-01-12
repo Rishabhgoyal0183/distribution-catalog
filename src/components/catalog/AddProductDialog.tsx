@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { Brand, Category, Product } from '@/types/catalog';
+import { ImageUpload } from './ImageUpload';
 
 interface AddProductDialogProps {
   brands: Brand[];
@@ -144,15 +145,10 @@ export const AddProductDialog = ({ brands, categories, onAdd }: AddProductDialog
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+          <ImageUpload
+            value={formData.imageUrl}
+            onChange={(dataUrl) => setFormData(prev => ({ ...prev, imageUrl: dataUrl }))}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
