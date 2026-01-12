@@ -12,10 +12,11 @@ import { ImageUpload } from './ImageUpload';
 interface AddProductDialogProps {
   brands: Brand[];
   categories: Category[];
+  products: Product[];
   onAdd: (product: Omit<Product, 'id' | 'createdAt'>) => void;
 }
 
-export const AddProductDialog = ({ brands, categories, onAdd }: AddProductDialogProps) => {
+export const AddProductDialog = ({ brands, categories, products, onAdd }: AddProductDialogProps) => {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +27,15 @@ export const AddProductDialog = ({ brands, categories, onAdd }: AddProductDialog
     description: '',
     imageUrl: '',
   });
+
+  // Get categories that have products with the selected brand
+  const filteredCategories = formData.brandId
+    ? categories.filter(category => 
+        products.some(product => 
+          product.brandId === formData.brandId && product.categoryId === category.id
+        )
+      )
+    : categories;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +93,7 @@ export const AddProductDialog = ({ brands, categories, onAdd }: AddProductDialog
               <Label>Brand *</Label>
               <Select
                 value={formData.brandId}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, brandId: value }))}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, brandId: value, categoryId: '' }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select brand" />
@@ -103,12 +113,13 @@ export const AddProductDialog = ({ brands, categories, onAdd }: AddProductDialog
               <Select
                 value={formData.categoryId}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
+                disabled={!formData.brandId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder={formData.brandId ? "Select category" : "Select brand first"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
+                  {filteredCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
                     </SelectItem>
@@ -117,7 +128,6 @@ export const AddProductDialog = ({ brands, categories, onAdd }: AddProductDialog
               </Select>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price">Price (₹)</Label>
