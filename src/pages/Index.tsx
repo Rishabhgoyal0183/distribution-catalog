@@ -1,12 +1,136 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useMemo } from 'react';
+import { useCatalog } from '@/hooks/useCatalog';
+import { CatalogHeader } from '@/components/catalog/CatalogHeader';
+import { ManageSection } from '@/components/catalog/ManageSection';
+import { FilterBar } from '@/components/catalog/FilterBar';
+import { ProductCard } from '@/components/catalog/ProductCard';
+import { AddProductDialog } from '@/components/catalog/AddProductDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Package, Settings } from 'lucide-react';
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const {
+    brands,
+    categories,
+    products,
+    isLoaded,
+    addBrand,
+    deleteBrand,
+    addCategory,
+    deleteCategory,
+    addProduct,
+    deleteProduct,
+    getBrandById,
+    getCategoryById,
+  } = useCatalog();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesBrand = selectedBrand === 'all' || product.brandId === selectedBrand;
+      const matchesCategory = selectedCategory === 'all' || product.categoryId === selectedCategory;
+      return matchesSearch && matchesBrand && matchesCategory;
+    });
+  }, [products, searchQuery, selectedBrand, selectedCategory]);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading catalog...</div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <CatalogHeader />
+      
+      <main className="container mx-auto px-4 py-6">
+        <Tabs defaultValue="catalog" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="catalog" className="gap-2">
+              <Package className="h-4 w-4" />
+              Catalog
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="gap-2">
+              <Settings className="h-4 w-4" />
+              Manage
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="catalog" className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+              <div className="flex-1">
+                <FilterBar
+                  brands={brands}
+                  categories={categories}
+                  searchQuery={searchQuery}
+                  selectedBrand={selectedBrand}
+                  selectedCategory={selectedCategory}
+                  onSearchChange={setSearchQuery}
+                  onBrandChange={setSelectedBrand}
+                  onCategoryChange={setSelectedCategory}
+                />
+              </div>
+              {brands.length > 0 && categories.length > 0 && (
+                <AddProductDialog
+                  brands={brands}
+                  categories={categories}
+                  onAdd={addProduct}
+                />
+              )}
+            </div>
+
+            {products.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">No products yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  {brands.length === 0 || categories.length === 0
+                    ? 'Add brands and categories first in the Manage tab, then add your products.'
+                    : 'Start adding products to your catalog!'}
+                </p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No products match your filters.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    brandName={getBrandById(product.brandId)?.name || 'Unknown'}
+                    categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
+                    onDelete={deleteProduct}
+                  />
+                ))}
+              </div>
+            )}
+
+            <div className="text-center text-sm text-muted-foreground">
+              Showing {filteredProducts.length} of {products.length} products
+            </div>
+          </TabsContent>
+
+          <TabsContent value="manage">
+            <ManageSection
+              brands={brands}
+              categories={categories}
+              onAddBrand={addBrand}
+              onDeleteBrand={deleteBrand}
+              onAddCategory={addCategory}
+              onDeleteCategory={deleteCategory}
+            />
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 };
