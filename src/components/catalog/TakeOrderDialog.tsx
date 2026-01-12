@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, ShoppingCart, AlertTriangle } from 'lucide-react';
 import { Brand, Category, Product } from '@/types/catalog';
-import { OrderItem } from '@/hooks/useOrders';
+import { OrderItem, Order } from '@/hooks/useOrders';
+import { toast } from 'sonner';
 
 interface TakeOrderDialogProps {
   products: Product[];
@@ -15,6 +16,7 @@ interface TakeOrderDialogProps {
   getBrandById: (id: string) => Brand | undefined;
   getCategoryById: (id: string) => Category | undefined;
   onAdd: (shopkeeperName: string, items: OrderItem[]) => void;
+  orders: Order[]; // Added to check existing orders
 }
 
 export const TakeOrderDialog = ({
@@ -24,6 +26,7 @@ export const TakeOrderDialog = ({
   getBrandById,
   getCategoryById,
   onAdd,
+  orders,
 }: TakeOrderDialogProps) => {
   const [open, setOpen] = useState(false);
   const [shopkeeperName, setShopkeeperName] = useState('');
@@ -32,6 +35,33 @@ export const TakeOrderDialog = ({
   const [quantity, setQuantity] = useState('1');
   const [filterBrand, setFilterBrand] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+
+  // Calculate reserved stock from pending and packed orders (not delivered)
+  const reservedStock = useMemo(() => {
+    const reserved: Record<string, number> = {};
+    orders
+      .filter(order => order.status === 'pending' || order.status === 'packed')
+      .forEach(order => {
+        order.items.forEach(item => {
+          reserved[item.productId] = (reserved[item.productId] || 0) + item.quantity;
+        });
+      });
+    return reserved;
+  }, [orders]);
+
+  // Get available stock for a product (total stock - reserved)
+  const getAvailableStock = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return 0;
+    const reserved = reservedStock[productId] || 0;
+    return Math.max(0, product.stock - reserved);
+  };
+
+  // Get quantity already in current order items
+  const getQuantityInCurrentOrder = (productId: string) => {
+    const item = orderItems.find(i => i.productId === productId);
+    return item?.quantity || 0;
+  };
 
   // Get categories that have products with the selected brand
   const filteredCategories = filterBrand
@@ -68,13 +98,26 @@ export const TakeOrderDialog = ({
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return;
 
+    const requestedQty = parseInt(quantity);
+    const availableStock = getAvailableStock(selectedProduct);
+    const alreadyInOrder = getQuantityInCurrentOrder(selectedProduct);
+    const remainingAvailable = availableStock - alreadyInOrder;
+
+    // Check if adding this quantity would exceed available stock
+    if (requestedQty > remainingAvailable) {
+      toast.error(`Insufficient stock! Only ${remainingAvailable} available for ${product.name}`, {
+        description: `Stock: ${product.stock}, Reserved in orders: ${reservedStock[selectedProduct] || 0}, In this order: ${alreadyInOrder}`,
+      });
+      return;
+    }
+
     const existingIndex = orderItems.findIndex(i => i.productId === selectedProduct);
 
     if (existingIndex >= 0) {
       setOrderItems(prev =>
         prev.map((item, idx) =>
           idx === existingIndex
-            ? { ...item, quantity: item.quantity + parseInt(quantity) }
+            ? { ...item, quantity: item.quantity + requestedQty }
             : item
         )
       );
@@ -91,7 +134,7 @@ export const TakeOrderDialog = ({
           brandName: brand?.name || 'Unknown',
           categoryId: product.categoryId,
           categoryName: category?.name || 'Unknown',
-          quantity: parseInt(quantity),
+          quantity: requestedQty,
         },
       ]);
     }
@@ -191,11 +234,20 @@ export const TakeOrderDialog = ({
                   <SelectValue placeholder={filterCategory ? "Select product" : "Select category first"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredProducts.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
+                  {filteredProducts.map((p) => {
+                    const available = getAvailableStock(p.id) - getQuantityInCurrentOrder(p.id);
+                    const isOutOfStock = available <= 0;
+                    return (
+                      <SelectItem 
+                        key={p.id} 
+                        value={p.id}
+                        disabled={isOutOfStock}
+                        className={isOutOfStock ? 'opacity-50' : ''}
+                      >
+                        {p.name} {isOutOfStock ? '(Out of stock)' : `(${available} available)`}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
 
@@ -224,18 +276,29 @@ export const TakeOrderDialog = ({
             <div className="space-y-2">
               <Label>Order Items ({orderItems.length})</Label>
               <div className="space-y-2 max-h-40 overflow-y-auto">
-                {orderItems.map((item) => (
-                  <div
-                    key={item.productId}
-                    className="flex items-center justify-between p-2 bg-muted rounded-lg text-sm"
-                  >
-                    <div>
-                      <span className="font-medium">{item.productName}</span>
-                      <span className="text-muted-foreground"> × {item.quantity}</span>
-                      <div className="text-xs text-muted-foreground">
-                        {item.brandName} • {item.categoryName}
+                {orderItems.map((item) => {
+                  const available = getAvailableStock(item.productId);
+                  const exceedsStock = item.quantity > available;
+                  return (
+                    <div
+                      key={item.productId}
+                      className={`flex items-center justify-between p-2 rounded-lg text-sm ${exceedsStock ? 'bg-destructive/10 border border-destructive/30' : 'bg-muted'}`}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium">{item.productName}</span>
+                          <span className="text-muted-foreground"> × {item.quantity}</span>
+                          {exceedsStock && (
+                            <AlertTriangle className="h-3 w-3 text-destructive" />
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {item.brandName} • {item.categoryName}
+                          {exceedsStock && (
+                            <span className="text-destructive ml-1">(Only {available} available)</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
                     <Button
                       type="button"
                       variant="ghost"
@@ -246,7 +309,8 @@ export const TakeOrderDialog = ({
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

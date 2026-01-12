@@ -177,6 +177,7 @@ const Index = () => {
                         getBrandById={getBrandById}
                         getCategoryById={getCategoryById}
                         onAdd={addOrder}
+                        orders={orders}
                       />
                     )}
                   </div>
