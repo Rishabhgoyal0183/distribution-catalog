@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { encode as hexEncode } from "https://deno.land/std@0.190.0/encoding/hex.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +12,23 @@ interface AuthRequest {
   email: string;
   password: string;
   name?: string;
+}
+
+// Simple password hashing using SHA-256 with salt
+async function hashPassword(password: string, salt?: string): Promise<{ hash: string; salt: string }> {
+  const useSalt = salt || crypto.randomUUID();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + useSalt);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = new Uint8Array(hashBuffer);
+  const hexBytes = hexEncode(hashArray);
+  const hash = new TextDecoder().decode(hexBytes);
+  return { hash, salt: useSalt };
+}
+
+async function verifyPassword(password: string, storedHash: string, salt: string): Promise<boolean> {
+  const { hash } = await hashPassword(password, salt);
+  return hash === storedHash;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -56,9 +73,9 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Hash password with bcrypt
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(password, salt);
+      // Hash password with SHA-256 + salt
+      const { hash, salt } = await hashPassword(password);
+      const passwordHash = `${salt}:${hash}`;
 
       // Insert new user
       const { data: newUser, error: insertError } = await supabase
@@ -107,8 +124,18 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Verify password with bcrypt
-      const isValid = await bcrypt.compare(password, user.password_hash);
+      // Extract salt and hash from stored password
+      const [salt, storedHash] = user.password_hash.split(":");
+      
+      if (!salt || !storedHash) {
+        return new Response(
+          JSON.stringify({ error: "Invalid password format" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Verify password
+      const isValid = await verifyPassword(password, storedHash, salt);
 
       if (!isValid) {
         return new Response(
