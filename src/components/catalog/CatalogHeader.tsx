@@ -11,21 +11,13 @@ export const CatalogHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: 'Error signing out',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Signed out',
-        description: 'You have been successfully signed out.',
-      });
-      navigate('/');
-    }
+  const handleSignOut = () => {
+    signOut();
+    toast({
+      title: 'Signed out',
+      description: 'You have been successfully signed out.',
+    });
+    navigate('/');
   };
 
   return (
