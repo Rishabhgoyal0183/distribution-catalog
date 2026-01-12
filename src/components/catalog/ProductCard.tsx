@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trash2, Package } from 'lucide-react';
 import { Product } from '@/types/catalog';
+import { UpdateStockDialog } from './UpdateStockDialog';
 
 interface ProductCardProps {
   product: Product;
@@ -10,9 +11,10 @@ interface ProductCardProps {
   categoryName: string;
   onDelete?: (id: string) => void;
   isAuthenticated?: boolean;
+  onUpdateStock?: (id: string, newStock: number) => void;
 }
 
-export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated }: ProductCardProps) => {
+export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated, onUpdateStock }: ProductCardProps) => {
   return (
     <Card className="overflow-hidden group hover:shadow-md transition-shadow">
       <div className="aspect-[4/3] bg-muted relative overflow-hidden">
@@ -47,12 +49,17 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{brandName}</Badge>
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">{categoryName}</Badge>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-1">
           <span className="text-sm sm:text-base font-bold text-primary">₹{product.price.toFixed(2)}</span>
           {isAuthenticated && (
-            <span className={`text-[10px] sm:text-xs ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {product.stock > 0 ? `${product.stock}` : 'Out'}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className={`text-[10px] sm:text-xs ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                {product.stock > 0 ? `${product.stock}` : 'Out'}
+              </span>
+              {onUpdateStock && (
+                <UpdateStockDialog product={product} onUpdateStock={onUpdateStock} />
+              )}
+            </div>
           )}
         </div>
         {product.description && (

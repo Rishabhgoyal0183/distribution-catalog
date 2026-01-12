@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCatalog } from '@/hooks/useCatalog';
-import { useOrders } from '@/hooks/useOrders';
+import { useOrders, OrderItem } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { CatalogHeader } from '@/components/catalog/CatalogHeader';
 import { ManageSection } from '@/components/catalog/ManageSection';
+import { StockAnalysisSection } from '@/components/catalog/StockAnalysisSection';
 import { FilterBar } from '@/components/catalog/FilterBar';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { AddProductDialog } from '@/components/catalog/AddProductDialog';
@@ -28,6 +29,7 @@ const Index = () => {
     addCategory,
     deleteCategory,
     addProduct,
+    updateProduct,
     deleteProduct,
     getBrandById,
     getCategoryById,
@@ -57,6 +59,27 @@ const Index = () => {
       return matchesSearch && matchesBrand && matchesCategory;
     });
   }, [products, searchQuery, selectedBrand, selectedCategory]);
+
+  // Handle stock deduction when order is delivered
+  const handleDelivered = useCallback((items: OrderItem[]) => {
+    items.forEach(item => {
+      const product = products.find(p => p.id === item.productId);
+      if (product) {
+        const newStock = Math.max(0, product.stock - item.quantity);
+        updateProduct(item.productId, { stock: newStock });
+      }
+    });
+  }, [products, updateProduct]);
+
+  // Wrapper for updateOrderStatus that handles stock deduction
+  const handleUpdateOrderStatus = useCallback((id: string, status: 'pending' | 'packed' | 'delivered') => {
+    updateOrderStatus(id, status, handleDelivered);
+  }, [updateOrderStatus, handleDelivered]);
+
+  // Handle stock update from product card
+  const handleUpdateStock = useCallback((id: string, newStock: number) => {
+    updateProduct(id, { stock: newStock });
+  }, [updateProduct]);
 
   if (!isLoaded || authLoading) {
     return (
@@ -154,6 +177,7 @@ const Index = () => {
                     categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
                     onDelete={isAuthenticated ? deleteProduct : undefined}
                     isAuthenticated={isAuthenticated}
+                    onUpdateStock={isAuthenticated ? handleUpdateStock : undefined}
                   />
                 ))}
               </div>
@@ -183,7 +207,7 @@ const Index = () => {
                   </div>
                   <OrdersSection
                     orders={orders}
-                    onUpdateStatus={updateOrderStatus}
+                    onUpdateStatus={handleUpdateOrderStatus}
                     onDelete={deleteOrder}
                     onExportJSON={exportToJSON}
                     onExportCSV={exportToCSV}
@@ -203,6 +227,11 @@ const Index = () => {
                 onDeleteBrand={deleteBrand}
                 onAddCategory={addCategory}
                 onDeleteCategory={deleteCategory}
+              />
+              <StockAnalysisSection
+                products={products}
+                orders={orders}
+                getBrandById={getBrandById}
               />
             </ProtectedContent>
           </TabsContent>
