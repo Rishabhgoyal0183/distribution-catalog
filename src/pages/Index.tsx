@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useOrders } from '@/hooks/useOrders';
+import { useAuth } from '@/hooks/useAuth';
 import { CatalogHeader } from '@/components/catalog/CatalogHeader';
 import { ManageSection } from '@/components/catalog/ManageSection';
 import { FilterBar } from '@/components/catalog/FilterBar';
@@ -9,9 +11,13 @@ import { AddProductDialog } from '@/components/catalog/AddProductDialog';
 import { TakeOrderDialog } from '@/components/catalog/TakeOrderDialog';
 import { OrdersSection } from '@/components/catalog/OrdersSection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Settings, ClipboardList } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Package, Settings, ClipboardList, LogIn, Lock } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
   const {
     brands,
     categories,
@@ -52,13 +58,32 @@ const Index = () => {
     });
   }, [products, searchQuery, selectedBrand, selectedCategory]);
 
-  if (!isLoaded || !ordersLoaded) {
+  if (!isLoaded || authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="animate-pulse text-muted-foreground">Loading catalog...</div>
       </div>
     );
   }
+
+  const ProtectedContent = ({ children }: { children: React.ReactNode }) => {
+    if (!isAuthenticated) {
+      return (
+        <div className="text-center py-12">
+          <Lock className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">Login Required</h3>
+          <p className="text-muted-foreground mb-4">
+            Please sign in to access this section.
+          </p>
+          <Button onClick={() => navigate('/login')}>
+            <LogIn className="h-4 w-4 mr-2" />
+            Sign In
+          </Button>
+        </div>
+      );
+    }
+    return <>{children}</>;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,7 +120,7 @@ const Index = () => {
                   onCategoryChange={setSelectedCategory}
                 />
               </div>
-              {brands.length > 0 && categories.length > 0 && (
+              {isAuthenticated && brands.length > 0 && categories.length > 0 && (
                 <AddProductDialog
                   brands={brands}
                   categories={categories}
@@ -126,7 +151,7 @@ const Index = () => {
                     product={product}
                     brandName={getBrandById(product.brandId)?.name || 'Unknown'}
                     categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
-                    onDelete={deleteProduct}
+                    onDelete={isAuthenticated ? deleteProduct : undefined}
                   />
                 ))}
               </div>
@@ -138,37 +163,45 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
-            <div className="flex justify-end">
-              {products.length > 0 && (
-                <TakeOrderDialog
-                  products={products}
-                  brands={brands}
-                  categories={categories}
-                  getBrandById={getBrandById}
-                  getCategoryById={getCategoryById}
-                  onAdd={addOrder}
-                />
+            <ProtectedContent>
+              {ordersLoaded && (
+                <>
+                  <div className="flex justify-end">
+                    {products.length > 0 && (
+                      <TakeOrderDialog
+                        products={products}
+                        brands={brands}
+                        categories={categories}
+                        getBrandById={getBrandById}
+                        getCategoryById={getCategoryById}
+                        onAdd={addOrder}
+                      />
+                    )}
+                  </div>
+                  <OrdersSection
+                    orders={orders}
+                    onUpdateStatus={updateOrderStatus}
+                    onDelete={deleteOrder}
+                    onExportJSON={exportToJSON}
+                    onExportCSV={exportToCSV}
+                    onImportJSON={importFromJSON}
+                  />
+                </>
               )}
-            </div>
-            <OrdersSection
-              orders={orders}
-              onUpdateStatus={updateOrderStatus}
-              onDelete={deleteOrder}
-              onExportJSON={exportToJSON}
-              onExportCSV={exportToCSV}
-              onImportJSON={importFromJSON}
-            />
+            </ProtectedContent>
           </TabsContent>
 
           <TabsContent value="manage">
-            <ManageSection
-              brands={brands}
-              categories={categories}
-              onAddBrand={addBrand}
-              onDeleteBrand={deleteBrand}
-              onAddCategory={addCategory}
-              onDeleteCategory={deleteCategory}
-            />
+            <ProtectedContent>
+              <ManageSection
+                brands={brands}
+                categories={categories}
+                onAddBrand={addBrand}
+                onDeleteBrand={deleteBrand}
+                onAddCategory={addCategory}
+                onDeleteCategory={deleteCategory}
+              />
+            </ProtectedContent>
           </TabsContent>
         </Tabs>
       </main>
