@@ -6,32 +6,33 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Package, LogIn } from 'lucide-react';
+import { UserPlus, AlertTriangle } from 'lucide-react';
 
-const Login = () => {
+const SecretSignup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(email.trim(), password);
+    const { error } = await signUp(email.trim(), password, name.trim());
 
     if (error) {
       toast({
-        title: 'Login failed',
+        title: 'Sign up failed',
         description: error,
         variant: 'destructive',
       });
     } else {
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
+        title: 'Account created!',
+        description: 'User has been registered successfully.',
       });
       navigate('/');
     }
@@ -43,41 +44,53 @@ const Login = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Package className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
-          <CardTitle className="text-2xl">Product Catalog</CardTitle>
+          <CardTitle className="text-2xl">Secret Registration</CardTitle>
           <CardDescription>
-            Sign in to manage your orders and products
+            This page is for testing purposes only. Remove before production.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="signin-email">Email</Label>
+              <Label htmlFor="signup-name">Name</Label>
               <Input
-                id="signin-email"
+                id="signup-name"
+                type="text"
+                placeholder="User name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="signup-email">Email</Label>
+              <Input
+                id="signup-email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="user@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="signin-password">Password</Label>
+              <Label htmlFor="signup-password">Password</Label>
               <Input
-                id="signin-password"
+                id="signup-password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
               />
             </div>
             <Button type="submit" className="w-full gap-2" disabled={isLoading}>
-              <LogIn className="h-4 w-4" />
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              <UserPlus className="h-4 w-4" />
+              {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
         </CardContent>
@@ -86,4 +99,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SecretSignup;
