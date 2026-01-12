@@ -41,12 +41,12 @@ export const TakeOrderDialog = ({
 
   const addItemToOrder = () => {
     if (!selectedProduct || !quantity) return;
-    
+
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return;
 
     const existingIndex = orderItems.findIndex(i => i.productId === selectedProduct);
-    
+
     if (existingIndex >= 0) {
       setOrderItems(prev =>
         prev.map((item, idx) =>
@@ -58,7 +58,7 @@ export const TakeOrderDialog = ({
     } else {
       const brand = getBrandById(product.brandId);
       const category = getCategoryById(product.categoryId);
-      
+
       setOrderItems(prev => [
         ...prev,
         {
@@ -72,7 +72,7 @@ export const TakeOrderDialog = ({
         },
       ]);
     }
-    
+
     setSelectedProduct('');
     setQuantity('1');
   };
@@ -129,7 +129,7 @@ export const TakeOrderDialog = ({
 
           <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
             <Label>Add Products</Label>
-            
+
             <div className="grid grid-cols-2 gap-2">
               <Select value={filterBrand} onValueChange={setFilterBrand}>
                 <SelectTrigger>
@@ -142,7 +142,7 @@ export const TakeOrderDialog = ({
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={filterCategory} onValueChange={setFilterCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by category" />
@@ -169,7 +169,7 @@ export const TakeOrderDialog = ({
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Input
                 type="number"
                 min="1"
@@ -178,15 +178,15 @@ export const TakeOrderDialog = ({
                 className="w-20"
                 placeholder="Qty"
               />
-              
+
               <Button
                 type="button"
                 variant="secondary"
-                size="icon"
+                size="default"
                 onClick={addItemToOrder}
                 disabled={!selectedProduct}
               >
-                <Plus className="h-4 w-4" />
+                Add Item
               </Button>
             </div>
           </div>
