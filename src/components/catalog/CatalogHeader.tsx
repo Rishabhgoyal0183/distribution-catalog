@@ -17,7 +17,7 @@ export const CatalogHeader = () => {
       title: 'Signed out',
       description: 'You have been successfully signed out.',
     });
-    navigate('/');
+    window.location.href = '/';
   };
 
   return (
@@ -38,7 +38,7 @@ export const CatalogHeader = () => {
             {isAuthenticated && (
               <>
                 <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {user?.email}
+                  {user?.name}
                 </span>
                 <Button variant="outline" size="sm" onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" />
