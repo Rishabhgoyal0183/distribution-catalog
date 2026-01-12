@@ -124,6 +124,7 @@ const Index = () => {
                 <AddProductDialog
                   brands={brands}
                   categories={categories}
+                  products={products}
                   onAdd={addProduct}
                 />
               )}

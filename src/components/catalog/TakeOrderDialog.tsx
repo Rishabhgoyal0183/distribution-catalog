@@ -30,14 +30,37 @@ export const TakeOrderDialog = ({
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('1');
-  const [filterBrand, setFilterBrand] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
+  // Get categories that have products with the selected brand
+  const filteredCategories = filterBrand
+    ? categories.filter(category => 
+        products.some(product => 
+          product.brandId === filterBrand && product.categoryId === category.id
+        )
+      )
+    : [];
+
+  // Get products filtered by selected brand and category
   const filteredProducts = products.filter(p => {
-    const matchesBrand = filterBrand === 'all' || p.brandId === filterBrand;
-    const matchesCategory = filterCategory === 'all' || p.categoryId === filterCategory;
+    const matchesBrand = filterBrand && p.brandId === filterBrand;
+    const matchesCategory = filterCategory && p.categoryId === filterCategory;
     return matchesBrand && matchesCategory;
   });
+
+  // Reset category and product when brand changes
+  const handleBrandChange = (value: string) => {
+    setFilterBrand(value);
+    setFilterCategory('');
+    setSelectedProduct('');
+  };
+
+  // Reset product when category changes
+  const handleCategoryChange = (value: string) => {
+    setFilterCategory(value);
+    setSelectedProduct('');
+  };
 
   const addItemToOrder = () => {
     if (!selectedProduct || !quantity) return;
@@ -96,8 +119,8 @@ export const TakeOrderDialog = ({
     setOrderItems([]);
     setSelectedProduct('');
     setQuantity('1');
-    setFilterBrand('all');
-    setFilterCategory('all');
+    setFilterBrand('');
+    setFilterCategory('');
   };
 
   return (
@@ -131,25 +154,27 @@ export const TakeOrderDialog = ({
             <Label>Add Products</Label>
 
             <div className="grid grid-cols-2 gap-2">
-              <Select value={filterBrand} onValueChange={setFilterBrand}>
+              <Select value={filterBrand} onValueChange={handleBrandChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by brand" />
+                  <SelectValue placeholder="Select brand" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Brands</SelectItem>
                   {brands.map((b) => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <Select 
+                value={filterCategory} 
+                onValueChange={handleCategoryChange}
+                disabled={!filterBrand}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by category" />
+                  <SelectValue placeholder={filterBrand ? "Select category" : "Select brand first"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((c) => (
+                  {filteredCategories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -157,14 +182,18 @@ export const TakeOrderDialog = ({
             </div>
 
             <div className="flex gap-2">
-              <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+              <Select 
+                value={selectedProduct} 
+                onValueChange={setSelectedProduct}
+                disabled={!filterCategory}
+              >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select product" />
+                  <SelectValue placeholder={filterCategory ? "Select product" : "Select category first"} />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredProducts.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
-                      {p.name} - {getBrandById(p.brandId)?.name}
+                      {p.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
