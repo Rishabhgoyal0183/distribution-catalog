@@ -98,7 +98,7 @@ export const AddProductDialog = ({ brands, categories, products, onAdd }: AddPro
                 <SelectTrigger>
                   <SelectValue placeholder="Select brand" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200]">
                   {brands.map((brand) => (
                     <SelectItem key={brand.id} value={brand.id}>
                       {brand.name}
@@ -118,7 +118,7 @@ export const AddProductDialog = ({ brands, categories, products, onAdd }: AddPro
                 <SelectTrigger>
                   <SelectValue placeholder={formData.brandId ? "Select category" : "Select brand first"} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200]">
                   {filteredCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
