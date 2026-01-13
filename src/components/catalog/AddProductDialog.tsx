@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { Brand, Category, Product } from '@/types/catalog';
 import { ImageUpload } from './ImageUpload';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddProductDialogProps {
   brands: Brand[];
@@ -72,109 +73,111 @@ export const AddProductDialog = ({ brands, categories, products, onAdd }: AddPro
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="product-name">Product Name *</Label>
-            <Input
-              id="product-name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="e.g., Dairy Milk Silk"
-              autoFocus
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
             <div className="space-y-2">
-              <Label>Brand *</Label>
-              <Select
-                value={formData.brandId}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, brandId: value, categoryId: '' }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select brand" />
-                </SelectTrigger>
-                <SelectContent position="popper" className="z-[200]">
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Category *</Label>
-              <Select
-                value={formData.categoryId}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
-                disabled={!formData.brandId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={formData.brandId ? "Select category" : "Select brand first"} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="z-[200]">
-                  {filteredCategories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="price">Price (₹)</Label>
+              <Label htmlFor="product-name">Product Name *</Label>
               <Input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                placeholder="0.00"
+                id="product-name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Dairy Milk Silk"
+                autoFocus
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Brand *</Label>
+                <Select
+                  value={formData.brandId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, brandId: value, categoryId: '' }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Category *</Label>
+                <Select
+                  value={formData.categoryId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
+                  disabled={!formData.brandId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={formData.brandId ? "Select category" : "Select brand first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price">Price (₹)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="stock">Stock</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min="0"
+                  value={formData.stock}
+                  onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <ImageUpload
+              value={formData.imageUrl}
+              onChange={(dataUrl) => setFormData(prev => ({ ...prev, imageUrl: dataUrl }))}
+            />
+
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock</Label>
-              <Input
-                id="stock"
-                type="number"
-                min="0"
-                value={formData.stock}
-                onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
-                placeholder="0"
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Product description..."
+                rows={3}
               />
             </div>
-          </div>
 
-          <ImageUpload
-            value={formData.imageUrl}
-            onChange={(dataUrl) => setFormData(prev => ({ ...prev, imageUrl: dataUrl }))}
-          />
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Product description..."
-              rows={3}
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={!isValid}>
-            Add Product
-          </Button>
-        </form>
+            <Button type="submit" className="w-full" disabled={!isValid}>
+              Add Product
+            </Button>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
