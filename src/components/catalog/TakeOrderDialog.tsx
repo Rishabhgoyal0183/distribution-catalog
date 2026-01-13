@@ -8,6 +8,7 @@ import { Plus, Trash2, ShoppingCart, AlertTriangle } from 'lucide-react';
 import { Brand, Category, Product } from '@/types/catalog';
 import { OrderItem, Order } from '@/hooks/useOrders';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TakeOrderDialogProps {
   products: Product[];
@@ -177,152 +178,154 @@ export const TakeOrderDialog = ({
           Take Order
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Take New Order</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="shopkeeper">Shopkeeper Name *</Label>
-            <Input
-              id="shopkeeper"
-              value={shopkeeperName}
-              onChange={(e) => setShopkeeperName(e.target.value)}
-              placeholder="Enter shopkeeper name"
-              autoFocus
-            />
-          </div>
-
-          <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
-            <Label>Add Products</Label>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Select value={filterBrand} onValueChange={handleBrandChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select brand" />
-                </SelectTrigger>
-                <SelectContent position="popper" className="z-[200]">
-                  {brands.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select 
-                value={filterCategory} 
-                onValueChange={handleCategoryChange}
-                disabled={!filterBrand}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={filterBrand ? "Select category" : "Select brand first"} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="z-[200]">
-                  {filteredCategories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-2">
-              <Select 
-                value={selectedProduct} 
-                onValueChange={setSelectedProduct}
-                disabled={!filterCategory}
-              >
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder={filterCategory ? "Select product" : "Select category first"} />
-                </SelectTrigger>
-                <SelectContent position="popper" className="z-[200]">
-                  {filteredProducts.map((p) => {
-                    const available = getAvailableStock(p.id) - getQuantityInCurrentOrder(p.id);
-                    const isOutOfStock = available <= 0;
-                    return (
-                      <SelectItem 
-                        key={p.id} 
-                        value={p.id}
-                        disabled={isOutOfStock}
-                        className={isOutOfStock ? 'opacity-50' : ''}
-                      >
-                        {p.name} {isOutOfStock ? '(Out of stock)' : `(${available} available)`}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-
-              <Input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="w-20"
-                placeholder="Qty"
-              />
-
-              <Button
-                type="button"
-                variant="secondary"
-                size="default"
-                onClick={addItemToOrder}
-                disabled={!selectedProduct}
-              >
-                Add Item
-              </Button>
-            </div>
-          </div>
-
-          {orderItems.length > 0 && (
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-4">
             <div className="space-y-2">
-              <Label>Order Items ({orderItems.length})</Label>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {orderItems.map((item) => {
-                  const available = getAvailableStock(item.productId);
-                  const exceedsStock = item.quantity > available;
-                  return (
-                    <div
-                      key={item.productId}
-                      className={`flex items-center justify-between p-2 rounded-lg text-sm ${exceedsStock ? 'bg-destructive/10 border border-destructive/30' : 'bg-muted'}`}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium">{item.productName}</span>
-                          <span className="text-muted-foreground"> × {item.quantity}</span>
-                          {exceedsStock && (
-                            <AlertTriangle className="h-3 w-3 text-destructive" />
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {item.brandName} • {item.categoryName}
-                          {exceedsStock && (
-                            <span className="text-destructive ml-1">(Only {available} available)</span>
-                          )}
-                        </div>
-                      </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-destructive"
-                      onClick={() => removeItem(item.productId)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  );
-                })}
+              <Label htmlFor="shopkeeper">Shopkeeper Name *</Label>
+              <Input
+                id="shopkeeper"
+                value={shopkeeperName}
+                onChange={(e) => setShopkeeperName(e.target.value)}
+                placeholder="Enter shopkeeper name"
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
+              <Label>Add Products</Label>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Select value={filterBrand} onValueChange={handleBrandChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select brand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select 
+                  value={filterCategory} 
+                  onValueChange={handleCategoryChange}
+                  disabled={!filterBrand}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={filterBrand ? "Select category" : "Select brand first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredCategories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-2">
+                <Select 
+                  value={selectedProduct} 
+                  onValueChange={setSelectedProduct}
+                  disabled={!filterCategory}
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder={filterCategory ? "Select product" : "Select category first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredProducts.map((p) => {
+                      const available = getAvailableStock(p.id) - getQuantityInCurrentOrder(p.id);
+                      const isOutOfStock = available <= 0;
+                      return (
+                        <SelectItem 
+                          key={p.id} 
+                          value={p.id}
+                          disabled={isOutOfStock}
+                          className={isOutOfStock ? 'opacity-50' : ''}
+                        >
+                          {p.name} {isOutOfStock ? '(Out of stock)' : `(${available} available)`}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="w-20"
+                  placeholder="Qty"
+                />
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="default"
+                  onClick={addItemToOrder}
+                  disabled={!selectedProduct}
+                >
+                  Add Item
+                </Button>
               </div>
             </div>
-          )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={!shopkeeperName.trim() || orderItems.length === 0}
-          >
-            Save Order ({orderItems.length} items)
-          </Button>
-        </form>
+            {orderItems.length > 0 && (
+              <div className="space-y-2">
+                <Label>Order Items ({orderItems.length})</Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {orderItems.map((item) => {
+                    const available = getAvailableStock(item.productId);
+                    const exceedsStock = item.quantity > available;
+                    return (
+                      <div
+                        key={item.productId}
+                        className={`flex items-center justify-between p-2 rounded-lg text-sm ${exceedsStock ? 'bg-destructive/10 border border-destructive/30' : 'bg-muted'}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">{item.productName}</span>
+                            <span className="text-muted-foreground"> × {item.quantity}</span>
+                            {exceedsStock && (
+                              <AlertTriangle className="h-3 w-3 text-destructive" />
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.brandName} • {item.categoryName}
+                            {exceedsStock && (
+                              <span className="text-destructive ml-1">(Only {available} available)</span>
+                            )}
+                          </div>
+                        </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-destructive"
+                        onClick={() => removeItem(item.productId)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!shopkeeperName.trim() || orderItems.length === 0}
+            >
+              Save Order ({orderItems.length} items)
+            </Button>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
