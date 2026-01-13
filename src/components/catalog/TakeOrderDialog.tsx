@@ -201,7 +201,7 @@ export const TakeOrderDialog = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select brand" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200]">
                   {brands.map((b) => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                   ))}
@@ -216,7 +216,7 @@ export const TakeOrderDialog = ({
                 <SelectTrigger>
                   <SelectValue placeholder={filterBrand ? "Select category" : "Select brand first"} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200]">
                   {filteredCategories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
@@ -233,7 +233,7 @@ export const TakeOrderDialog = ({
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder={filterCategory ? "Select product" : "Select category first"} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200]">
                   {filteredProducts.map((p) => {
                     const available = getAvailableStock(p.id) - getQuantityInCurrentOrder(p.id);
                     const isOutOfStock = available <= 0;
