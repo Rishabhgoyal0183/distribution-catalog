@@ -67,17 +67,16 @@ export const CatalogPagination = ({
 
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
-  const isShowingAll = itemsPerPage >= totalItems;
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Show</span>
         <Select
-          value={isShowingAll && itemsPerPage > 100 ? 'all' : itemsPerPage.toString()}
-          onValueChange={(value) => onItemsPerPageChange(value === 'all' ? totalItems : Number(value))}
+          value={itemsPerPage.toString()}
+          onValueChange={(value) => onItemsPerPageChange(Number(value))}
         >
-          <SelectTrigger className="w-[80px] h-8">
+          <SelectTrigger className="w-[70px] h-8">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -86,7 +85,6 @@ export const CatalogPagination = ({
                 {option}
               </SelectItem>
             ))}
-            <SelectItem value="all">All</SelectItem>
           </SelectContent>
         </Select>
         <span>per page</span>
