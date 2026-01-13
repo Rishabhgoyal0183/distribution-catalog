@@ -11,8 +11,9 @@ interface ManageSectionProps {
   categories: Category[];
   onAddBrand: (name: string) => void;
   onDeleteBrand: (id: string) => void;
-  onAddCategory: (name: string) => void;
+  onAddCategory: (name: string, brandId: string) => void;
   onDeleteCategory: (id: string) => void;
+  getBrandById: (id: string) => Brand | undefined;
 }
 
 export const ManageSection = ({
@@ -22,6 +23,7 @@ export const ManageSection = ({
   onDeleteBrand,
   onAddCategory,
   onDeleteCategory,
+  getBrandById,
 }: ManageSectionProps) => {
   return (
     <div className="grid md:grid-cols-2 gap-4">
@@ -67,7 +69,7 @@ export const ManageSection = ({
               <Tag className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">Categories</CardTitle>
             </div>
-            <AddCategoryDialog onAdd={onAddCategory} />
+            <AddCategoryDialog brands={brands} onAdd={onAddCategory} />
           </div>
         </CardHeader>
         <CardContent>
@@ -77,19 +79,23 @@ export const ManageSection = ({
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Badge key={category.id} variant="outline" className="gap-1 pr-1">
-                  {category.name}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground rounded-full"
-                    onClick={() => onDeleteCategory(category.id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
+              {categories.map((category) => {
+                const brand = category.brandId ? getBrandById(category.brandId) : null;
+                return (
+                  <Badge key={category.id} variant="outline" className="gap-1 pr-1">
+                    {category.name}
+                    {brand && <span className="text-xs text-muted-foreground">({brand.name})</span>}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground rounded-full"
+                      onClick={() => onDeleteCategory(category.id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
             </div>
           )}
         </CardContent>

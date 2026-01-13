@@ -29,14 +29,10 @@ export const AddProductDialog = ({ brands, categories, products, onAdd }: AddPro
     imageUrl: '',
   });
 
-  // Get categories that have products with the selected brand
+  // Get categories that belong to the selected brand
   const filteredCategories = formData.brandId
-    ? categories.filter(category => 
-        products.some(product => 
-          product.brandId === formData.brandId && product.categoryId === category.id
-        )
-      )
-    : categories;
+    ? categories.filter(category => category.brandId === formData.brandId)
+    : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

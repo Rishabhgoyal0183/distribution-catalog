@@ -7,6 +7,7 @@ export interface Brand {
 export interface Category {
   id: string;
   name: string;
+  brandId: string | null;
   createdAt: string;
 }
 

@@ -30,6 +30,7 @@ export const useCatalog = () => {
           setCategories(categoriesRes.data.map(c => ({
             id: c.id,
             name: c.name,
+            brandId: c.brand_id,
             createdAt: c.created_at,
           })));
         }
@@ -91,10 +92,10 @@ export const useCatalog = () => {
   };
 
   // Category operations
-  const addCategory = async (name: string) => {
+  const addCategory = async (name: string, brandId: string) => {
     const { data, error } = await supabase
       .from('categories')
-      .insert({ name: name.trim() })
+      .insert({ name: name.trim(), brand_id: brandId })
       .select()
       .single();
 
@@ -106,6 +107,7 @@ export const useCatalog = () => {
     const newCategory: Category = {
       id: data.id,
       name: data.name,
+      brandId: data.brand_id,
       createdAt: data.created_at,
     };
     setCategories(prev => [...prev, newCategory]);
