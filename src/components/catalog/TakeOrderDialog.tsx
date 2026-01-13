@@ -64,13 +64,9 @@ export const TakeOrderDialog = ({
     return item?.quantity || 0;
   };
 
-  // Get categories that have products with the selected brand
+  // Get categories that belong to the selected brand
   const filteredCategories = filterBrand
-    ? categories.filter(category => 
-        products.some(product => 
-          product.brandId === filterBrand && product.categoryId === category.id
-        )
-      )
+    ? categories.filter(category => category.brandId === filterBrand)
     : [];
 
   // Get products filtered by selected brand and category

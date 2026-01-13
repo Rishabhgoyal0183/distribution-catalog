@@ -227,6 +227,7 @@ const Index = () => {
                 onDeleteBrand={deleteBrand}
                 onAddCategory={addCategory}
                 onDeleteCategory={deleteCategory}
+                getBrandById={getBrandById}
               />
               <StockAnalysisSection
                 products={products}

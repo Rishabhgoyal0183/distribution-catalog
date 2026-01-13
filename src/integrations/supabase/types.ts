@@ -34,21 +34,32 @@ export type Database = {
       }
       categories: {
         Row: {
+          brand_id: string | null
           created_at: string
           id: string
           name: string
         }
         Insert: {
+          brand_id?: string | null
           created_at?: string
           id?: string
           name: string
         }
         Update: {
+          brand_id?: string | null
           created_at?: string
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
