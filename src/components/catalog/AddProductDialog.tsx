@@ -73,7 +73,7 @@ export const AddProductDialog = ({ brands, categories, products, onAdd }: AddPro
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <ScrollArea className="flex-1 -mx-6 px-6 overflow-auto max-h-[calc(90vh-120px)]">
           <form onSubmit={handleSubmit} className="space-y-4 pb-4">
             <div className="space-y-2">
               <Label htmlFor="product-name">Product Name *</Label>
