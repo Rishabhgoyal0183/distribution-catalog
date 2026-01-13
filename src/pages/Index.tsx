@@ -11,6 +11,7 @@ import { ProductCard } from '@/components/catalog/ProductCard';
 import { AddProductDialog } from '@/components/catalog/AddProductDialog';
 import { TakeOrderDialog } from '@/components/catalog/TakeOrderDialog';
 import { OrdersSection } from '@/components/catalog/OrdersSection';
+import { CatalogPagination } from '@/components/catalog/CatalogPagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Package, Settings, ClipboardList, LogIn, Lock } from 'lucide-react';
@@ -49,6 +50,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -59,6 +62,34 @@ const Index = () => {
       return matchesSearch && matchesBrand && matchesCategory;
     });
   }, [products, searchQuery, selectedBrand, selectedCategory]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
+  // Reset to first page when filters change
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrand(brand);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1);
+  };
 
   // Handle stock deduction when order is delivered
   const handleDelivered = useCallback((items: OrderItem[]) => {
@@ -138,9 +169,9 @@ const Index = () => {
                   searchQuery={searchQuery}
                   selectedBrand={selectedBrand}
                   selectedCategory={selectedCategory}
-                  onSearchChange={setSearchQuery}
-                  onBrandChange={setSelectedBrand}
-                  onCategoryChange={setSelectedCategory}
+                  onSearchChange={handleSearchChange}
+                  onBrandChange={handleBrandChange}
+                  onCategoryChange={handleCategoryChange}
                 />
               </div>
               {isAuthenticated && brands.length > 0 && categories.length > 0 && (
@@ -168,24 +199,30 @@ const Index = () => {
                 <p className="text-muted-foreground">No products match your filters.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    brandName={getBrandById(product.brandId)?.name || 'Unknown'}
-                    categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
-                    onDelete={isAuthenticated ? deleteProduct : undefined}
-                    isAuthenticated={isAuthenticated}
-                    onUpdateStock={isAuthenticated ? handleUpdateStock : undefined}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {paginatedProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      brandName={getBrandById(product.brandId)?.name || 'Unknown'}
+                      categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
+                      onDelete={isAuthenticated ? deleteProduct : undefined}
+                      isAuthenticated={isAuthenticated}
+                      onUpdateStock={isAuthenticated ? handleUpdateStock : undefined}
+                    />
+                  ))}
+                </div>
+                <CatalogPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={filteredProducts.length}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                />
+              </>
             )}
-
-            <div className="text-center text-sm text-muted-foreground">
-              Showing {filteredProducts.length} of {products.length} products
-            </div>
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
