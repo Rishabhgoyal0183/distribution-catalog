@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Package } from 'lucide-react';
-import { Product } from '@/types/catalog';
+import { Product, Brand, Category } from '@/types/catalog';
 import { UpdateStockDialog } from './UpdateStockDialog';
+import { EditProductDialog } from './EditProductDialog';
 
 interface ProductCardProps {
   product: Product;
@@ -14,15 +15,18 @@ interface ProductCardProps {
   onDelete?: (id: string) => void;
   isAuthenticated?: boolean;
   onUpdateStock?: (id: string, newStock: number) => void;
+  brands?: Brand[];
+  categories?: Category[];
+  onUpdate?: (id: string, updates: Partial<Omit<Product, 'id' | 'createdAt'>>) => void;
 }
 
-export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated, onUpdateStock }: ProductCardProps) => {
+export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated, onUpdateStock, brands, categories, onUpdate }: ProductCardProps) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
   return (
     <Card className="overflow-hidden group hover:shadow-md transition-shadow h-full flex flex-col">
-      <div className="aspect-[4/3] bg-muted relative overflow-hidden flex-shrink-0">
+      <div className="aspect-square bg-muted relative overflow-hidden flex-shrink-0">
         {/* Loading skeleton */}
         {product.imageUrl && imageLoading && !imageError && (
           <Skeleton className="absolute inset-0 w-full h-full animate-pulse" />
@@ -47,6 +51,16 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
         <div className={`absolute inset-0 flex items-center justify-center bg-muted ${product.imageUrl && !imageError ? 'hidden' : ''}`}>
           <Package className="h-8 w-8 text-muted-foreground/50" />
         </div>
+        {/* Edit button */}
+        {isAuthenticated && onUpdate && brands && categories && (
+          <EditProductDialog
+            product={product}
+            brands={brands}
+            categories={categories}
+            onUpdate={onUpdate}
+          />
+        )}
+        {/* Delete button */}
         {onDelete && (
           <Button
             variant="destructive"
