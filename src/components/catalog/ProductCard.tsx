@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Trash2, Package } from 'lucide-react';
 import { Product } from '@/types/catalog';
 import { UpdateStockDialog } from './UpdateStockDialog';
@@ -15,22 +17,34 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated, onUpdateStock }: ProductCardProps) => {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <Card className="overflow-hidden group hover:shadow-md transition-shadow h-full flex flex-col">
       <div className="aspect-[4/3] bg-muted relative overflow-hidden flex-shrink-0">
-        {product.imageUrl ? (
+        {/* Loading skeleton */}
+        {product.imageUrl && imageLoading && !imageError && (
+          <Skeleton className="absolute inset-0 w-full h-full animate-pulse" />
+        )}
+        
+        {/* Product image */}
+        {product.imageUrl && !imageError ? (
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
             loading="lazy"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+            onLoad={() => setImageLoading(false)}
+            onError={() => {
+              setImageLoading(false);
+              setImageError(true);
             }}
           />
         ) : null}
-        <div className={`absolute inset-0 flex items-center justify-center bg-muted ${product.imageUrl ? 'hidden' : ''}`}>
+        
+        {/* Fallback placeholder */}
+        <div className={`absolute inset-0 flex items-center justify-center bg-muted ${product.imageUrl && !imageError ? 'hidden' : ''}`}>
           <Package className="h-8 w-8 text-muted-foreground/50" />
         </div>
         {onDelete && (
