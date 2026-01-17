@@ -210,6 +210,9 @@ const Index = () => {
                       onDelete={isAuthenticated ? deleteProduct : undefined}
                       isAuthenticated={isAuthenticated}
                       onUpdateStock={isAuthenticated ? handleUpdateStock : undefined}
+                      brands={brands}
+                      categories={categories}
+                      onUpdate={isAuthenticated ? updateProduct : undefined}
                     />
                   ))}
                 </div>
