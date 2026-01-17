@@ -16,20 +16,21 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated, onUpdateStock }: ProductCardProps) => {
   return (
-    <Card className="overflow-hidden group hover:shadow-md transition-shadow">
-      <div className="aspect-[4/3] bg-muted relative overflow-hidden">
+    <Card className="overflow-hidden group hover:shadow-md transition-shadow h-full flex flex-col">
+      <div className="aspect-[4/3] bg-muted relative overflow-hidden flex-shrink-0">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            loading="lazy"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
           />
         ) : null}
-        <div className={`absolute inset-0 flex items-center justify-center ${product.imageUrl ? 'hidden' : ''}`}>
+        <div className={`absolute inset-0 flex items-center justify-center bg-muted ${product.imageUrl ? 'hidden' : ''}`}>
           <Package className="h-8 w-8 text-muted-foreground/50" />
         </div>
         {onDelete && (
