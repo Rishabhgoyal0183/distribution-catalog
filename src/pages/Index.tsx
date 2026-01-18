@@ -121,6 +121,14 @@ const Index = () => {
     updateProduct(id, { stock: newStock });
   }, [updateProduct]);
 
+  // Smooth scroll to category section
+  const handleScrollToCategory = useCallback((categoryId: string) => {
+    const element = document.getElementById(`category-section-${categoryId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
   if (!isLoaded || authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -214,6 +222,7 @@ const Index = () => {
                 filteredProducts={filteredProducts}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
+                onScrollToCategory={handleScrollToCategory}
               />
             </div>
 

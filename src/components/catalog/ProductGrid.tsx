@@ -98,7 +98,8 @@ export const ProductGrid = ({
         {categorySections.map(({ category, products: categoryProducts }, index) => (
           <section
             key={category.id}
-            className="animate-fade-in"
+            id={`category-section-${category.id}`}
+            className="animate-fade-in scroll-mt-32"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             {/* Category Header */}
