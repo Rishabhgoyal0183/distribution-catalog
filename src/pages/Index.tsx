@@ -7,14 +7,23 @@ import { CatalogHeader } from '@/components/catalog/CatalogHeader';
 import { ManageSection } from '@/components/catalog/ManageSection';
 import { StockAnalysisSection } from '@/components/catalog/StockAnalysisSection';
 import { FilterBar } from '@/components/catalog/FilterBar';
-import { ProductCard } from '@/components/catalog/ProductCard';
+import { CategoryTabs } from '@/components/catalog/CategoryTabs';
+import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { AddProductDialog } from '@/components/catalog/AddProductDialog';
 import { TakeOrderDialog } from '@/components/catalog/TakeOrderDialog';
 import { OrdersSection } from '@/components/catalog/OrdersSection';
 import { CatalogPagination } from '@/components/catalog/CatalogPagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Package, Settings, ClipboardList, LogIn, Lock } from 'lucide-react';
+import { Package, Settings, ClipboardList, LogIn, Lock, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -161,29 +170,53 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="catalog" className="space-y-6">
+            {/* Search and Add Product Row */}
             <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-              <div className="flex-1">
-                <FilterBar
-                  brands={brands}
-                  categories={categories}
-                  searchQuery={searchQuery}
-                  selectedBrand={selectedBrand}
-                  selectedCategory={selectedCategory}
-                  onSearchChange={handleSearchChange}
-                  onBrandChange={handleBrandChange}
-                  onCategoryChange={handleCategoryChange}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-10"
                 />
               </div>
-              {isAuthenticated && brands.length > 0 && categories.length > 0 && (
-                <AddProductDialog
-                  brands={brands}
-                  categories={categories}
-                  products={products}
-                  onAdd={addProduct}
-                />
-              )}
+              <div className="flex items-center gap-3">
+                <Select value={selectedBrand} onValueChange={handleBrandChange}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="All Brands" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Brands</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isAuthenticated && brands.length > 0 && categories.length > 0 && (
+                  <AddProductDialog
+                    brands={brands}
+                    categories={categories}
+                    products={products}
+                    onAdd={addProduct}
+                  />
+                )}
+              </div>
             </div>
 
+            {/* Category Tabs - Sticky */}
+            <div className="sticky top-0 z-20 bg-background py-2 -mx-4 px-4 border-b border-border/50">
+              <CategoryTabs
+                categories={categories}
+                products={filteredProducts}
+                selectedCategory={selectedCategory}
+                onCategoryChange={handleCategoryChange}
+              />
+            </div>
+
+            {/* Products Grid */}
             {products.length === 0 ? (
               <div className="text-center py-12">
                 <Package className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
@@ -200,30 +233,28 @@ const Index = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                  {paginatedProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      brandName={getBrandById(product.brandId)?.name || 'Unknown'}
-                      categoryName={getCategoryById(product.categoryId)?.name || 'Unknown'}
-                      onDelete={isAuthenticated ? deleteProduct : undefined}
-                      isAuthenticated={isAuthenticated}
-                      onUpdateStock={isAuthenticated ? handleUpdateStock : undefined}
-                      brands={brands}
-                      categories={categories}
-                      onUpdate={isAuthenticated ? updateProduct : undefined}
-                    />
-                  ))}
-                </div>
-                <CatalogPagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  itemsPerPage={itemsPerPage}
-                  totalItems={filteredProducts.length}
-                  onPageChange={setCurrentPage}
-                  onItemsPerPageChange={handleItemsPerPageChange}
+                <ProductGrid
+                  products={filteredProducts}
+                  brands={brands}
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  getBrandById={getBrandById}
+                  getCategoryById={getCategoryById}
+                  isAuthenticated={isAuthenticated}
+                  onDelete={deleteProduct}
+                  onUpdateStock={handleUpdateStock}
+                  onUpdate={updateProduct}
                 />
+                {selectedCategory !== 'all' && (
+                  <CatalogPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={filteredProducts.length}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                  />
+                )}
               </>
             )}
           </TabsContent>
