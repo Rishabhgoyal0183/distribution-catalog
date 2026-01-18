@@ -210,7 +210,8 @@ const Index = () => {
             <div className="sticky top-0 z-20 bg-background py-2 -mx-4 px-4 border-b border-border/50">
               <CategoryTabs
                 categories={categories}
-                products={filteredProducts}
+                allProducts={products}
+                filteredProducts={filteredProducts}
                 selectedCategory={selectedCategory}
                 onCategoryChange={handleCategoryChange}
               />
