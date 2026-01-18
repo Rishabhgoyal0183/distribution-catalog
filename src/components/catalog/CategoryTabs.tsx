@@ -5,25 +5,28 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface CategoryTabsProps {
   categories: Category[];
-  products: Product[];
+  allProducts: Product[]; // Full product list for counting
+  filteredProducts: Product[]; // Filtered by search/brand for "All" count
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
 }
 
 export const CategoryTabs = ({
   categories,
-  products,
+  allProducts,
+  filteredProducts,
   selectedCategory,
   onCategoryChange,
 }: CategoryTabsProps) => {
-  // Calculate product count per category
+  // Calculate product count per category using ALL products (not filtered)
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: products.length };
+    const counts: Record<string, number> = { all: filteredProducts.length };
     categories.forEach((category) => {
-      counts[category.id] = products.filter((p) => p.categoryId === category.id).length;
+      // Count from allProducts so tabs always show
+      counts[category.id] = allProducts.filter((p) => p.categoryId === category.id).length;
     });
     return counts;
-  }, [categories, products]);
+  }, [categories, allProducts, filteredProducts]);
 
   // Filter categories that have products
   const categoriesWithProducts = useMemo(() => {
