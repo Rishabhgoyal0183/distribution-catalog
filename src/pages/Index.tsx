@@ -9,6 +9,7 @@ import { StockAnalysisSection } from '@/components/catalog/StockAnalysisSection'
 import { FilterBar } from '@/components/catalog/FilterBar';
 import { CategoryTabs } from '@/components/catalog/CategoryTabs';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
+import { BackToTopButton } from '@/components/catalog/BackToTopButton';
 import { AddProductDialog } from '@/components/catalog/AddProductDialog';
 import { TakeOrderDialog } from '@/components/catalog/TakeOrderDialog';
 import { OrdersSection } from '@/components/catalog/OrdersSection';
@@ -159,6 +160,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <CatalogHeader />
+      <BackToTopButton />
       
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="catalog" className="space-y-6">
