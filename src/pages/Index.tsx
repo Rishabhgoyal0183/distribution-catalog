@@ -1,18 +1,13 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useOrders, OrderItem } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { CatalogHeader } from '@/components/catalog/CatalogHeader';
-import { ManageSection } from '@/components/catalog/ManageSection';
-import { StockAnalysisSection } from '@/components/catalog/StockAnalysisSection';
 import { FilterBar } from '@/components/catalog/FilterBar';
 import { CategoryTabs } from '@/components/catalog/CategoryTabs';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { BackToTopButton } from '@/components/catalog/BackToTopButton';
-import { AddProductDialog } from '@/components/catalog/AddProductDialog';
-import { TakeOrderDialog } from '@/components/catalog/TakeOrderDialog';
-import { OrdersSection } from '@/components/catalog/OrdersSection';
 import { CatalogPagination } from '@/components/catalog/CatalogPagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -25,6 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+// Lazy load heavy dialog components
+const AddProductDialog = lazy(() => import('@/components/catalog/AddProductDialog').then(m => ({ default: m.AddProductDialog })));
+const TakeOrderDialog = lazy(() => import('@/components/catalog/TakeOrderDialog').then(m => ({ default: m.TakeOrderDialog })));
+const ManageSection = lazy(() => import('@/components/catalog/ManageSection').then(m => ({ default: m.ManageSection })));
+const StockAnalysisSection = lazy(() => import('@/components/catalog/StockAnalysisSection').then(m => ({ default: m.StockAnalysisSection })));
+const OrdersSection = lazy(() => import('@/components/catalog/OrdersSection').then(m => ({ default: m.OrdersSection })));
+
+// Loading fallback for lazy components
+const ComponentLoader = () => (
+  <div className="flex items-center justify-center py-8">
+    <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
+  </div>
+);
 
 const Index = () => {
   const navigate = useNavigate();
@@ -206,12 +215,14 @@ const Index = () => {
                   </SelectContent>
                 </Select>
                 {isAuthenticated && brands.length > 0 && categories.length > 0 && (
-                  <AddProductDialog
-                    brands={brands}
-                    categories={categories}
-                    products={products}
-                    onAdd={addProduct}
-                  />
+                  <Suspense fallback={<ComponentLoader />}>
+                    <AddProductDialog
+                      brands={brands}
+                      categories={categories}
+                      products={products}
+                      onAdd={addProduct}
+                    />
+                  </Suspense>
                 )}
               </div>
             </div>
@@ -274,7 +285,7 @@ const Index = () => {
           <TabsContent value="orders" className="space-y-6">
             <ProtectedContent>
               {ordersLoaded && (
-                <>
+                <Suspense fallback={<ComponentLoader />}>
                   <div className="flex justify-end">
                     {products.length > 0 && (
                       <TakeOrderDialog
@@ -296,27 +307,29 @@ const Index = () => {
                     onExportCSV={exportToCSV}
                     onImportJSON={importFromJSON}
                   />
-                </>
+                </Suspense>
               )}
             </ProtectedContent>
           </TabsContent>
 
           <TabsContent value="manage">
             <ProtectedContent>
-              <ManageSection
-                brands={brands}
-                categories={categories}
-                onAddBrand={addBrand}
-                onDeleteBrand={deleteBrand}
-                onAddCategory={addCategory}
-                onDeleteCategory={deleteCategory}
-                getBrandById={getBrandById}
-              />
-              <StockAnalysisSection
-                products={products}
-                orders={orders}
-                getBrandById={getBrandById}
-              />
+              <Suspense fallback={<ComponentLoader />}>
+                <ManageSection
+                  brands={brands}
+                  categories={categories}
+                  onAddBrand={addBrand}
+                  onDeleteBrand={deleteBrand}
+                  onAddCategory={addCategory}
+                  onDeleteCategory={deleteCategory}
+                  getBrandById={getBrandById}
+                />
+                <StockAnalysisSection
+                  products={products}
+                  orders={orders}
+                  getBrandById={getBrandById}
+                />
+              </Suspense>
             </ProtectedContent>
           </TabsContent>
         </Tabs>
