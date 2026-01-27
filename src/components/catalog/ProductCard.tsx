@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,20 @@ interface ProductCardProps {
 export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuthenticated, onUpdateStock, brands, categories, onUpdate }: ProductCardProps) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (textRef.current && containerRef.current) {
+        setIsOverflowing(textRef.current.scrollWidth > containerRef.current.clientWidth);
+      }
+    };
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [product.name]);
 
   return (
     <Card className="overflow-hidden group hover:shadow-md transition-shadow h-full flex flex-col">
@@ -73,7 +87,12 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
         )}
       </div>
       <CardContent className="p-2 sm:p-3 space-y-1.5">
-        <h3 className="font-semibold text-foreground text-sm break-words">{product.name}</h3>
+        <div ref={containerRef} className="overflow-hidden whitespace-nowrap">
+          <h3 className={`font-semibold text-foreground text-sm inline-block ${isOverflowing ? 'animate-marquee' : ''}`}>
+            <span ref={textRef}>{product.name}</span>
+            {isOverflowing && <span className="pl-8">{product.name}</span>}
+          </h3>
+        </div>
         <div className="flex gap-1 flex-wrap">
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{brandName}</Badge>
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">{categoryName}</Badge>
