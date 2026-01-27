@@ -30,12 +30,20 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
   useEffect(() => {
     const checkOverflow = () => {
       if (textRef.current && containerRef.current) {
-        setIsOverflowing(textRef.current.scrollWidth > containerRef.current.clientWidth);
+        const textWidth = textRef.current.offsetWidth;
+        const containerWidth = containerRef.current.offsetWidth;
+        setIsOverflowing(textWidth > containerWidth);
       }
     };
-    checkOverflow();
+    
+    // Delay check to ensure fonts are loaded and layout is complete
+    const timeoutId = setTimeout(checkOverflow, 100);
     window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', checkOverflow);
+    };
   }, [product.name]);
 
   return (
@@ -87,11 +95,17 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
         )}
       </div>
       <CardContent className="p-2 sm:p-3 space-y-1.5">
-        <div ref={containerRef} className="overflow-hidden whitespace-nowrap">
-          <h3 className={`font-semibold text-foreground text-sm inline-block ${isOverflowing ? 'animate-marquee' : ''}`}>
-            <span ref={textRef}>{product.name}</span>
-            {isOverflowing && <span className="pl-8">{product.name}</span>}
-          </h3>
+        <div ref={containerRef} className="overflow-hidden">
+          <div className={`whitespace-nowrap ${isOverflowing ? 'animate-marquee inline-block' : ''}`}>
+            <h3 className="font-semibold text-foreground text-sm inline">
+              <span ref={textRef}>{product.name}</span>
+            </h3>
+            {isOverflowing && (
+              <h3 className="font-semibold text-foreground text-sm inline pl-8">
+                {product.name}
+              </h3>
+            )}
+          </div>
         </div>
         <div className="flex gap-1 flex-wrap">
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{brandName}</Badge>
