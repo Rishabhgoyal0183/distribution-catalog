@@ -73,7 +73,7 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
         )}
       </div>
       <CardContent className="p-2 sm:p-3 space-y-1.5">
-        <h3 className="font-semibold text-foreground line-clamp-1 text-sm">{product.name}</h3>
+        <h3 className="font-semibold text-foreground text-sm break-words">{product.name}</h3>
         <div className="flex gap-1 flex-wrap">
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{brandName}</Badge>
           <Badge variant="outline" className="text-[10px] px-1.5 py-0">{categoryName}</Badge>
