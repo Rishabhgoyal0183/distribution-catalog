@@ -24,6 +24,7 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [isOverflowing, setIsOverflowing] = useState(false);
+  const [animationDuration, setAnimationDuration] = useState(8);
   const textRef = useRef<HTMLSpanElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +33,16 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
       if (textRef.current && containerRef.current) {
         const textWidth = textRef.current.offsetWidth;
         const containerWidth = containerRef.current.offsetWidth;
-        setIsOverflowing(textWidth > containerWidth);
+        const overflow = textWidth > containerWidth;
+        setIsOverflowing(overflow);
+        
+        // Calculate duration based on text length (longer text = longer duration for consistent speed)
+        if (overflow) {
+          const overflowAmount = textWidth - containerWidth;
+          // Base speed: ~30px per second, minimum 4s, maximum 15s
+          const duration = Math.min(15, Math.max(4, (textWidth + overflowAmount) / 30));
+          setAnimationDuration(duration);
+        }
       }
     };
     
@@ -95,8 +105,13 @@ export const ProductCard = ({ product, brandName, categoryName, onDelete, isAuth
         )}
       </div>
       <CardContent className="p-2 sm:p-3 space-y-1.5">
-        <div ref={containerRef} className="overflow-hidden">
-          <div className={`whitespace-nowrap ${isOverflowing ? 'animate-marquee inline-block' : ''}`}>
+        <div ref={containerRef} className="overflow-hidden group/marquee">
+          <div 
+            className={`whitespace-nowrap ${isOverflowing ? 'inline-block hover:[animation-play-state:paused]' : ''}`}
+            style={isOverflowing ? { 
+              animation: `marquee ${animationDuration}s linear infinite`
+            } : undefined}
+          >
             <h3 className="font-semibold text-foreground text-sm inline">
               <span ref={textRef}>{product.name}</span>
             </h3>
